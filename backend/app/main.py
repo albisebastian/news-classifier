@@ -33,10 +33,25 @@ class TextIn(BaseModel):
     engine: Optional[str] = None
 
 
+def ocr_engine() -> str:
+    import importlib.util
+    import shutil
+
+    def has(mod: str) -> bool:
+        try:
+            return importlib.util.find_spec(mod) is not None
+        except Exception:
+            return False
+
+    if shutil.which("tesseract") and has("pytesseract"):
+        return "tesseract"
+    return "rapidocr" if has("rapidocr_onnxruntime") else "none"
+
+
 @app.get("/api/health")
 def health():
     e = pick_engine(None)
-    return {"default": e.id, "engines": [x.info() for x in ENGINES.values()],
+    return {"default": e.id, "ocr": ocr_engine(), "max_upload_mb": C.MAX_UPLOAD_MB, "engines": [x.info() for x in ENGINES.values()],
             "demo": not any(x.available for x in ENGINES.values())}
 
 
@@ -62,7 +77,7 @@ async def analyze(file: UploadFile = File(...), engine: Optional[str] = Form(Non
         raise HTTPException(500, f"Missing dependency: {exc}. Is Tesseract installed?")
     except Exception as exc:
         if "tesseract" in str(exc).lower():
-            raise HTTPException(500, "No OCR engine available. Run  pip install rapidocr_onnxruntime  (or install Tesseract) and restart the server.")
+            raise HTTPException(500, "Image OCR is not available on this server. Upload a PDF with selectable text, or install an OCR engine (pip install rapidocr_onnxruntime, or Tesseract) and restart.")
         raise HTTPException(422, f"Could not read this file: {exc}")
 
     eng = pick_engine(engine)

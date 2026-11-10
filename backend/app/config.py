@@ -29,7 +29,7 @@ MIN_WORDS = int(os.getenv("MIN_WORDS", "2"))
 MAX_WORDS = int(os.getenv("MAX_WORDS", "28"))
 PDF_DPI = int(os.getenv("PDF_DPI", "200"))
 MAX_PAGES = int(os.getenv("MAX_PAGES", "40"))
-MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "40"))
+MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "4" if os.getenv("VERCEL") else "40"))  # Vercel request bodies are capped at ~4.5 MB
 CONTEXT_WORDS = int(os.getenv("CONTEXT_WORDS", "40"))  # body words appended to a headline when classifying (0 = headline only)
 
 # ---- "Intelligent" engine (svm_model.joblib + semantic_reference.npz) ----------------------------

@@ -38,6 +38,7 @@ async function loadHealth() {
     if (!HEALTH.engines.find(e => e.id === ENGINE && e.available)) ENGINE = HEALTH.default;
   } catch { HEALTH = null; }
   paintStatus();
+  if (HEALTH && HEALTH.ocr === 'none') $('#drop small').textContent = `PDF with selectable text · up to ${HEALTH.max_upload_mb} MB · image OCR not available on this server`;
   if (HEALTH && HEALTH.engines.some(e => e.semantic === 'loading')) setTimeout(loadHealth, 4000);
 }
 document.querySelectorAll('.engine button').forEach(b => b.addEventListener('click', () => { ENGINE = b.dataset.engine; paintStatus(); }));
@@ -122,7 +123,8 @@ async function analyze(file) {
   try {
     const fd = new FormData(); fd.append('file', file); fd.append('engine', ENGINE);
     const r = await fetch('/api/analyze', { method: 'POST', body: fd });
-    const d = await r.json();
+    if (r.status === 413) throw new Error(`File too large for this server (limit ${HEALTH ? HEALTH.max_upload_mb : 4} MB). Try a smaller PDF or fewer pages.`);
+    let d; try { d = await r.json(); } catch { throw new Error('The server could not process this file (' + r.status + ').'); }
     if (!r.ok) throw new Error(d.detail || 'Upload failed');
     renderStories(host, d);
   } catch (e) { host.innerHTML = `<div class="err">${esc(e.message)}</div>`; }

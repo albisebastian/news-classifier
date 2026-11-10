@@ -124,6 +124,22 @@ The repo ships a `Dockerfile` (CPU torch + OCR, Intelligent engine only, no Tens
 3. First boot downloads the embedding model (cached afterwards); the status pill shows "SVM + semantic" when ready.
 
 Any container host works the same way: `docker build -t headline-ai . && docker run -p 7860:7860 headline-ai`.
-Not suited to serverless hosts (Vercel/Netlify): the models and torch exceed their size/time limits.
 The 166 MB Keras model is not in the repo; add `news_category_classifier.keras` to `backend/models/` (and use
 `requirements-standard.txt`) if you want the Standard engine.
+
+## Deploy on Vercel (free tier, slim version)
+
+`vercel.json`, `api/index.py` and the root `requirements.txt` configure a slim deployment. What runs there:
+
+| Works | Not available (too large for a serverless function) |
+|---|---|
+| Typed headlines, Intelligent engine (SVM) | Semantic layer (needs PyTorch) |
+| PDFs with a selectable text layer | OCR for images / scanned PDFs |
+| Per-story analysis, grouping by category | Keras "Standard" engine (TensorFlow) |
+
+Limits: request bodies are capped at about 4.5 MB on Vercel, so uploads are limited to 4 MB (set automatically when `VERCEL` is present).
+Bundle is roughly 345 MB of Python packages; Vercel's Python limit is 500 MB. If a build ever exceeds it, set the
+environment variable `VERCEL_ANALYZE_BUILD_OUTPUT=1` and redeploy to see which packages are largest.
+
+Steps: vercel.com -> **Add New... -> Project** -> import `albisebastian/news-classifier` -> leave the defaults -> **Deploy**.
+Every push to `main` redeploys. For the full app (OCR for photos/scans + semantic layer) use the Docker route above.

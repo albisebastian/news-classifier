@@ -1,0 +1,11 @@
+train/
+deploy/
+tools/
+.vscode/
+*.ipynb
+*.keras
+backend/data/
+backend/requirements*.txt
+Dockerfile
+run.sh
+run.bat
