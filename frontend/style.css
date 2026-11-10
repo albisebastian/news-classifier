@@ -174,3 +174,8 @@ footer{display:flex;justify-content:center;align-items:center;gap:10px;margin-to
 .hl.open .detail{display:block;animation:rise .35s both}
 .detail p{font:300 14px/1.5 'Outfit';color:var(--muted);margin-bottom:12px}
 .hl .chev{font:200 11px 'JetBrains Mono';color:var(--electric)}
+
+.result.unclear .cat{color:var(--muted)}
+.result.unclear .why{font:300 15px/1.5 'Outfit';color:var(--muted);margin:10px 0 14px}
+.result.unclear details{font:300 13px 'Outfit';color:var(--muted)}
+.result.unclear summary{cursor:pointer;margin-bottom:10px;color:var(--electric)}

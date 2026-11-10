@@ -66,6 +66,11 @@ verified the engine keeps running on the SVM alone and the status pill says "SVM
   texts as pickled objects into a pickle-free one (already done for the supplied file).
 - `scikit-learn` is pinned to 1.6.1 because that is the version the SVM was saved with.
 
+**Input guard.** The classifiers always have to pick a category, so on nonsense they would still name one. If fewer than 34 % of a
+text's words are in the model's vocabulary (`MIN_KNOWN_RATIO`), the app answers **Unclear** instead (typed text, and OCR-garbled
+stories, which are grouped under "Unclear"). A low-probability cutoff was rejected on purpose: real headlines often score
+~25 %, so it would reject half of them. Limit: real English that is simply not news ("hello how are you") still gets a category.
+
 Tuning (env vars, see `config.py`): `SVM_TEMP`, `W_SVM`/`W_SEM`, `KNN_K`, `HEADLINE_BLEND`, `CHUNK_WORDS`, `STORY_WORDS`.
 
 ## Where the model files go

@@ -86,7 +86,7 @@ async def analyze(file: UploadFile = File(...), engine: Optional[str] = Form(Non
 
     stories, groups = [], defaultdict(list)
     for sid, ((page, h), r) in enumerate(zip(flat, results)):
-        top = r["predictions"][0]
+        top = {"label": "Unclear", "score": 0.0} if r["meta"].get("unclear") else r["predictions"][0]
         s = {"id": sid, "page": page, "text": h["text"], "snippet": h.get("context", "")[:260],
              "predictions": r["predictions"], "meta": r["meta"]}
         stories.append(s)

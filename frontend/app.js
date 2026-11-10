@@ -70,6 +70,14 @@ function agreeBadge(m) {
 }
 
 async function renderResult(host, text, preds, meta) {
+  if (meta && meta.unclear) {
+    host.innerHTML = `<div class="result unclear"><p class="q">“${esc(text)}”</p>
+      <div class="cat" id="cat"></div>
+      <p class="why">This doesn’t look like a news headline: ${esc(meta.reason || 'the text could not be recognised')}. Try a real headline, for example <i>“Central bank holds rates as inflation cools”</i>.</p>
+      <details><summary>Show the model’s guesses anyway</summary>${barsHTML(preds.slice(0, 4))}</details></div>`;
+    typeInto($('#cat', host), 'Unclear', 45); growBars(host);
+    return;
+  }
   const top = preds[0], lv = level(top.score);
   host.innerHTML = `
     <div class="result ${lv}">
@@ -146,16 +154,17 @@ function renderStories(host, d) {
     cats.querySelectorAll('.cat-chip').forEach(b => b.onclick = () => { state.filter = b.dataset.c || null; chips(); draw(); });
   };
   const card = (s, n) => {
-    const top = s.predictions[0], lv = level(top.score), m = s.meta;
+    const m = s.meta, un = !!m.unclear;
+    const top = un ? { label: 'Unclear', score: 0 } : s.predictions[0], lv = un ? 'low' : level(top.score);
     const el = document.createElement('div'); el.className = 'hl'; el.style.animationDelay = (n * 60) + 'ms';
     el.innerHTML = `<div><div class="txt"></div><div class="src">page ${s.page}</div></div>
-      <div class="meta"><b>${esc(top.label)}</b><em>${(top.score * 100).toFixed(1)}%</em><br><span class="tag ${lv}">${LABEL[lv]}</span></div>
+      <div class="meta"><b>${esc(top.label)}</b><em>${un ? '—' : (top.score * 100).toFixed(1) + '%'}</em><br><span class="tag ${lv}">${un ? 'Unclear text' : LABEL[lv]}</span></div>
       <div class="mini"><i class="f ${lv}" style="width:0"></i></div>
       <div class="badges"><span class="pill">${m.mode === 'story' ? `read full story · ${m.body_words} words` : 'headline only'}</span>${agreeBadge(m)}<span class="chev">details ▾</span></div>
-      <div class="detail">${s.snippet ? `<p>“${esc(s.snippet)}…”</p>` : ''}${barsHTML(s.predictions.slice(0, 5))}</div>`;
+      <div class="detail">${un ? `<p>Skipped: ${esc(m.reason || 'text not recognised')} (common with poor OCR). Try a sharper scan.</p>` : ''}${s.snippet ? `<p>“${esc(s.snippet)}…”</p>` : ''}${barsHTML(s.predictions.slice(0, 5))}</div>`;
     el.onclick = () => { el.classList.toggle('open'); growBars(el); };
     typeInto($('.txt', el), s.text, 14);
-    setTimeout(() => $('.mini i', el).style.width = top.score * 100 + '%', 150);
+    setTimeout(() => $('.mini i', el).style.width = (un ? 0 : top.score * 100) + '%', 150);
     return el;
   };
   const draw = () => {

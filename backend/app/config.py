@@ -55,3 +55,6 @@ MAX_CHUNKS = int(os.getenv("MAX_CHUNKS", "5"))
 HEADLINE_BLEND = float(os.getenv("HEADLINE_BLEND", "0.3"))  # weight of the headline-only view in a story's score
 MIN_BODY_WORDS = int(os.getenv("MIN_BODY_WORDS", "25"))     # shorter bodies: classify the headline alone
 STORY_WORDS = int(os.getenv("STORY_WORDS", "600"))          # max body words collected under each detected headline
+
+# ---- input guard: refuse to name a category for text the model has mostly never seen (gibberish, OCR noise) ----
+MIN_KNOWN_RATIO = float(os.getenv("MIN_KNOWN_RATIO", "0.34"))   # share of words that must be in the model's vocabulary

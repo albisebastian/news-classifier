@@ -63,6 +63,7 @@ class IntelligentEngine:
         self._ref_emb: Optional[np.ndarray] = None
         self._ref_y: Optional[np.ndarray] = None
         self.embedder_name: Optional[str] = None
+        self._vocab = None
         self._load_svm()
         if self.available:
             self._start_semantic()
@@ -161,6 +162,14 @@ class IntelligentEngine:
                 self.notes.append(f"semantic scoring failed: {exc}")
         return ps, ps, None
 
+    def known_ratio(self, text: str) -> float:
+        """Share of the text's words (3+ letters) that exist in the SVM's word vocabulary."""
+        if self._vocab is None:
+            wv = self.pipe.named_steps["tfidf"].transformer_list[0][1]
+            self._vocab, self._tok, self._pre = wv.vocabulary_, wv.build_tokenizer(), wv.build_preprocessor()
+        words = [w for w in self._tok(self._pre(text)) if len(w) >= 3]
+        return sum(w in self._vocab for w in words) / len(words) if words else 0.0
+
     # ------------------------------------------------------------------ public API
     def _rank(self, p: np.ndarray, limit: int = 8) -> List[dict]:
         order = np.argsort(p)[::-1][:limit]
@@ -170,7 +179,10 @@ class IntelligentEngine:
         """Short texts / typed headlines."""
         texts = [_clean(t) for t in texts]
         p, ps, pm = self._fuse(texts)
-        return [self._result(p[i], ps[i], None if pm is None else pm[i], "headline", 0) for i in range(len(texts))]
+        out = [self._result(p[i], ps[i], None if pm is None else pm[i], "headline", 0) for i in range(len(texts))]
+        for r, txt in zip(out, texts):
+            self._guard(r, txt)
+        return out
 
     def predict_stories(self, stories: List[dict]) -> List[dict]:
         """stories: [{'text': headline, 'context': body}] -> whole-story analysis."""
@@ -187,9 +199,18 @@ class IntelligentEngine:
                 PS[i] = (1 - a) * psf[r] + a * psh[i]
                 if PM is not None and pmf is not None:
                     PM[i] = (1 - a) * pmf[r] + a * pmh[i]
-        return [self._result(P[i], PS[i], None if PM is None else PM[i],
-                             "story" if i in full_idx else "headline", len(bodies[i].split()))
-                for i in range(len(stories))]
+        out = [self._result(P[i], PS[i], None if PM is None else PM[i],
+                            "story" if i in full_idx else "headline", len(bodies[i].split()))
+               for i in range(len(stories))]
+        for r, h, b in zip(out, heads, bodies):
+            self._guard(r, f"{h} {b}")
+        return out
+
+    def _guard(self, result: dict, text: str) -> None:
+        k = self.known_ratio(text)
+        if k < C.MIN_KNOWN_RATIO:
+            result["meta"]["unclear"] = True
+            result["meta"]["reason"] = "most words are not recognised"
 
     def _result(self, p, ps, pm, mode, words) -> dict:
         meta = {"engine": "intelligent", "mode": mode, "body_words": words,

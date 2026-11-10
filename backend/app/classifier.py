@@ -42,6 +42,7 @@ class Classifier:
         self.mode = "demo"
         self.error: str | None = None
         self.max_len = C.MAX_LEN
+        self.vocab = None
         self._load()
 
     # ------------------------------------------------------------------ load
@@ -61,6 +62,11 @@ class Classifier:
                     shape = shape[0]
                 self.max_len = int(shape[1]) if shape and len(shape) > 1 and shape[1] else 50
             self.mode = "model"
+            try:
+                vec = next(l for l in self.model.layers if l.__class__.__name__ == "TextVectorization")
+                self.vocab = set(vec.get_vocabulary())
+            except Exception:
+                self.vocab = None
         except Exception as exc:  # keep the app alive, surface the reason
             self.model, self.mode = None, "demo"
             self.error = f"Could not load model ({exc}) - running in demo mode."
@@ -155,13 +161,23 @@ class StandardEngine:
     def labels(self):
         return self.clf.labels
 
+    def _meta(self, base: dict, text: str) -> dict:
+        v = self.clf.vocab
+        if v:
+            words = [w for w in re.findall(r"[a-z0-9']+", text.lower()) if len(w) >= 3]
+            if words and sum(w in v for w in words) / len(words) < C.MIN_KNOWN_RATIO:
+                base.update(unclear=True, reason="most words are not recognised")
+        return base
+
     def predict_batch(self, texts):
-        return [{"predictions": p[:8], "meta": {"engine": "standard", "mode": "headline"}} for p in self.clf.predict_batch(texts)]
+        return [{"predictions": p[:8], "meta": self._meta({"engine": "standard", "mode": "headline"}, t)}
+                for p, t in zip(self.clf.predict_batch(texts), texts)]
 
     def predict_stories(self, stories):
         # the Keras model was trained on "headline + short description": give it the story opening only
         texts = [f'{s["text"]}. {" ".join(s.get("context", "").split()[:C.CONTEXT_WORDS])}'.strip() for s in stories]
-        return [{"predictions": p[:8], "meta": {"engine": "standard", "mode": "story"}} for p in self.clf.predict_batch(texts)]
+        return [{"predictions": p[:8], "meta": self._meta({"engine": "standard", "mode": "story"}, t)}
+                for p, t in zip(self.clf.predict_batch(texts), texts)]
 
     def info(self):
         return {"id": self.id, "label": self.label, "available": self.available, "labels": self.labels,
