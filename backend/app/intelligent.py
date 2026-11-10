@@ -156,7 +156,11 @@ class IntelligentEngine:
         if self.semantic == "ready":
             try:
                 pm = self._sem_probs(texts)
-                p = (C.W_SVM * ps + C.W_SEM * pm) / (C.W_SVM + C.W_SEM)
+                # The semantic layer compares against long reference articles and is the weaker signal (~61 % leave-one-out
+                # vs ~93 % for the SVM), so it only gets a real say on long texts; for a short headline it barely counts.
+                n = np.array([len(t.split()) for t in texts], dtype=float)
+                w = (C.W_SEM * np.minimum(1.0, n / C.SEM_FULL_WORDS))[:, None]
+                p = (C.W_SVM * ps + w * pm) / (C.W_SVM + w)
                 return p, ps, pm
             except Exception as exc:       # never let the optional layer break a request
                 self.notes.append(f"semantic scoring failed: {exc}")

@@ -43,7 +43,7 @@ Switch engines with the toggle in the header, or set `ENGINE=standard` before st
 **What the backend does with a newspaper upload** (`/api/analyze`):
 1. Finds each headline (PDF text layer or Tesseract OCR) and collects the *whole story body* under it.
 2. Intelligent engine reads the complete story: the SVM scores the full text; the semantic layer embeds it in windows
-   (long stories are chunked and averaged) and votes against the reference articles; both are fused, then blended with the
+   (long stories are chunked and averaged) and votes against the reference articles; both are fused (the semantic layer is a minor, length-aware adjustment, see below), then blended with the
    headline-only view (`HEADLINE_BLEND`). Bodies under 25 words fall back to the headline alone.
 3. Every story gets its own category, probabilities, and an *engines agree / mixed signal* flag.
 4. Results are returned grouped by category (and by page); the UI can filter by category.
@@ -53,6 +53,11 @@ A single typed headline is simply classified, with no story analysis.
 first start (candidates are tried and each is *verified* against the stored vectors, the match is remembered in
 `models/embedder.txt`). This needs `sentence-transformers` and internet access **once** (~90 MB download). If it cannot be
 verified the engine keeps running on the SVM alone and the status pill says "SVM only". Pin a model with `EMBEDDER_MODEL=...`.
+
+**Semantic layer weight.** Measured leave-one-out on the 930 reference articles, the semantic k-NN is right ~61 % of the time
+versus ~93 % for the SVM, and a one-line headline embeds far from 239-word reference articles. It therefore has a small
+weight (`W_SEM`=0.25) that scales with text length (`SEM_FULL_WORDS`=80): on a short headline it barely counts, on a long story
+it counts fully. (At the original 40 % weight it flipped a correct "Entertainment" film headline to "Environment".)
 
 **Measured notes (be aware):**
 - The SVM improves with text length on the reference articles: 78 % (first 10 words) -> 85 % (20) -> 90 % (40) -> ~93 % (150+).

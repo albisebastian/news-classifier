@@ -46,10 +46,11 @@ EMBEDDER_CANDIDATES = [
 ]
 EMBED_MATCH = float(os.getenv("EMBED_MATCH", "0.97"))
 SVM_TEMP = float(os.getenv("SVM_TEMP", "0.20"))      # softmax temperature turning SVM margins into probabilities
-W_SVM = float(os.getenv("W_SVM", "0.6"))             # fusion weights (semantic layer optional)
-W_SEM = float(os.getenv("W_SEM", "0.4"))
+W_SVM = float(os.getenv("W_SVM", "1.0"))             # fusion weights (semantic layer optional)
+W_SEM = float(os.getenv("W_SEM", "0.25"))            # max weight of the semantic layer (reached on long texts)
+SEM_FULL_WORDS = int(os.getenv("SEM_FULL_WORDS", "80"))  # semantic weight scales up linearly with text length to this many words
 KNN_K = int(os.getenv("KNN_K", "12"))                # nearest reference articles that vote
-KNN_TAU = float(os.getenv("KNN_TAU", "0.05"))        # vote sharpness (lower = nearest neighbours dominate)
+KNN_TAU = float(os.getenv("KNN_TAU", "0.2"))        # vote sharpness (lower = nearest neighbours dominate)
 CHUNK_WORDS = int(os.getenv("CHUNK_WORDS", "150"))   # long stories are embedded in windows of this many words
 MAX_CHUNKS = int(os.getenv("MAX_CHUNKS", "5"))
 HEADLINE_BLEND = float(os.getenv("HEADLINE_BLEND", "0.3"))  # weight of the headline-only view in a story's score
