@@ -1,0 +1,3 @@
+# Adds the optional "Standard" engine (Keras model) and lets you run train/train_model.py
+-r requirements.txt
+tensorflow>=2.16   # Keras 3 (.keras files). Python 3.10-3.12 recommended.

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+backend/data/*
+!backend/data/.gitkeep
+backend/models/*.keras
+backend/models/embedder.txt
+model_files.zip
+*.zip
+.DS_Store

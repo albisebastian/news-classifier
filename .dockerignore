@@ -1,0 +1,6 @@
+.git
+**/__pycache__
+**/.venv
+backend/data
+*.zip
+*.keras

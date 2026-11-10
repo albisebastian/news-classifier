@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Headline — News Category Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400&family=JetBrains+Mono:wght@100;200;300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <div class="glow g1"></div><div class="glow g2"></div>
+
+  <header class="top">
+    <div class="brand"><span class="dot"></span>headline<span class="thin">.ai</span></div>
+    <div class="head-right">
+      <div class="engine" id="engine" role="tablist" aria-label="Engine">
+        <button data-engine="intelligent" class="on">Intelligent</button>
+        <button data-engine="standard">Standard</button>
+      </div>
+      <div class="status" id="status"><i></i><span>connecting</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">NEWS · CATEGORY · CLASSIFIER</p>
+      <h1><span id="typed"></span><span class="caret"></span></h1>
+      <p class="sub">Type a headline, or drop a newspaper page. We find the headlines and tell you where each one belongs.</p>
+    </section>
+
+    <section class="card main-card">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="text" role="tab">Write a headline</button>
+        <button class="tab" data-tab="file" role="tab">Upload page / PDF</button>
+        <span class="ink"></span>
+      </div>
+
+      <!-- TEXT -->
+      <div class="pane active" id="pane-text">
+        <div class="field">
+          <textarea id="headline" rows="2" maxlength="300" placeholder="e.g. Central bank holds rates as inflation cools"></textarea>
+          <div class="field-row">
+            <div class="chips" id="examples"></div>
+            <button class="btn" id="go-text"><span>Classify</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div id="text-result"></div>
+      </div>
+
+      <!-- FILE -->
+      <div class="pane" id="pane-file">
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept=".pdf,image/*" hidden>
+          <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>
+          <b>Drop a newspaper scan or PDF</b>
+          <small>PNG · JPG · PDF — multi-page supported</small>
+          <span class="fname" id="fname"></span>
+        </label>
+        <div id="file-result"></div>
+      </div>
+    </section>
+
+    <footer>
+      <span>Low &lt; 30%</span><i class="lg low"></i>
+      <span>Neutral 30–60%</span><i class="lg mid"></i>
+      <span>High ≥ 60%</span><i class="lg high"></i>
+    </footer>
+  </main>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

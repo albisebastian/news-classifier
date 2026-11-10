@@ -1,0 +1,12 @@
+# Core app: Intelligent engine (SVM + semantic), OCR, API. No TensorFlow needed.
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+pillow>=10.0
+pymupdf>=1.24
+numpy>=1.26
+scikit-learn==1.6.1   # must match the version svm_model.joblib was saved with
+joblib>=1.3
+sentence-transformers>=3.0   # semantic layer of the Intelligent engine
+rapidocr_onnxruntime         # OCR for images/scans with no system install
+pytesseract>=0.3.10          # used automatically if the Tesseract program is installed
